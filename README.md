@@ -11,19 +11,19 @@ are:
 - A **Destination** (Cloud Storage bucket, Cloud Pub/Sub topic, BigQuery dataset)
 
 ## Compatibility
-This module is meant for use with Terraform 0.13. If you haven't
+Tested with Terraform 0.14.4. This module is meant for use with Terraform >=0.13. If you haven't
 [upgraded](https://www.terraform.io/upgrade-guides/0-13.html) and need a Terraform
 0.12.x-compatible version of this module, the last released version
 intended for Terraform 0.12.x is [v5.1.0](https://registry.terraform.io/modules/terraform-google-modules/-log-export/google/v5.1.0).
 
 ## Usage
 
-The [examples](./examples) directory contains directories for each destination, and within each destination directory are directories for each parent resource level. Consider the following
+Consider the following
 example that will configure a Cloud Storage destination and a log export at the project level:
 
 ```hcl
 module "log_export" {
-  source                 = "terraform-google-modules/log-export/google"
+  source                 = "<path-to-module>"
   destination_uri        = "${module.destination.destination_uri}"
   filter                 = "severity >= ERROR"
   log_sink_name          = "storage_example_logsink"
@@ -33,7 +33,7 @@ module "log_export" {
 }
 
 module "destination" {
-  source                   = "terraform-google-modules/log-export/google//modules/storage"
+  source                   = "<path-to-module>/modules/storage"
   project_id               = "sample-project"
   storage_bucket_name      = "storage_example_bucket"
   log_sink_writer_identity = "${module.log_export.writer_identity}"
@@ -49,7 +49,6 @@ so that all dependencies are met.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| bigquery\_options | (Optional) Options that affect sinks exporting data to BigQuery. use\_partitioned\_tables - (Required) Whether to use BigQuery's partition tables. | <pre>object({<br>    use_partitioned_tables = bool<br>  })</pre> | `null` | no |
 | destination\_uri | The self\_link URI of the destination resource (This is available as an output coming from one of the destination submodules) | `string` | n/a | yes |
 | filter | The filter to apply when exporting logs. Only log entries that match the filter are exported. Default is '' which exports all logs. | `string` | `""` | no |
 | include\_children | Only valid if 'organization' or 'folder' is chosen as var.parent\_resource.type. Determines whether or not to include children organizations/folders in the sink export. If true, logs associated with child projects are also exported; otherwise only logs relating to the provided organization/folder are included. | `bool` | `false` | no |
@@ -84,31 +83,9 @@ The service account should have the following roles:
 - `roles/resourcemanager.projectIamAdmin` on the destination project (to grant write permissions for logsink service account)
 - `roles/serviceusage.serviceUsageAdmin` on the destination project (to enable destination APIs)
 
-#### Pub/Sub roles
-To use a Google Cloud Pub/Sub topic as the destination:
-- `roles/pubsub.admin` on the destination project (to create a pub/sub topic)
-
-To integrate the logsink with Splunk, you'll need a topic subscriber (service account):
-- `roles/iam.serviceAccountAdmin` on the destination project (to create a service account for the logsink subscriber)
-
 #### Storage role
 To use a Google Cloud Storage bucket as the destination:
 - `roles/storage.admin` on the destination project (to create a storage bucket)
-
-#### BigQuery role
-To use a BigQuery dataset as the destination, one must grant:
-- `roles/bigquery.dataEditor` on the destination project (to create a BigQuery dataset)
-
-#### BigQuery Options
-To use BigQuery `use_partitioned_tables` argument you must also have `unique_writer_identity` set to `true`.
-
- Usage in module:
- ```
- bigquery_options = {
-    use_partitioned_tables = true
-  }
-```
- Enabling this option will store logs into a single table that is internally partitioned by day which can improve query performance.
 
 ### Enable API's
 In order to operate with the Service Account you must activate the following API's on the base project where the Service Account was created:
@@ -119,8 +96,6 @@ In order to operate with the Service Account you must activate the following API
 - Service Usage API - serviceusage.googleapis.com
 - Stackdriver Logging API - logging.googleapis.com
 - Cloud Storage JSON API - storage-api.googleapis.com
-- BigQuery API - bigquery.googleapis.com
-- Cloud Pub/Sub API - pubsub.googleapis.com
 
 ## Install
 

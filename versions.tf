@@ -23,9 +23,4 @@ terraform {
       version = "~> 3.53"
     }
   }
-
-  provider_meta "google" {
-    module_name = "blueprints/terraform/terraform-google-log-export/v6.0.0"
-  }
-
 }
